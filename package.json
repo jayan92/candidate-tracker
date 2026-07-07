@@ -1,0 +1,13 @@
+{
+  "name": "candidate-tracker",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "db:migrate": "npm run db:migrate --workspace=apps/api",
+    "db:seed": "npm run db:seed --workspace=apps/api",
+    "test": "npm test --workspace=apps/api"
+  }
+}

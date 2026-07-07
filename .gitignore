@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+*.log
+ARCHITECTURE.md
+UI_SPEC.md
+decisions.md
+CLAUDE_CODE_PHASE_PROMPTS.md
