@@ -8,6 +8,7 @@ import {
 import { errorHandler } from "./plugins/error-handler";
 import { applicationRoutes } from "./routes/applications";
 import { candidateRoutes } from "./routes/candidates";
+import { dashboardRoutes } from "./routes/dashboard";
 
 const app = Fastify({ logger: true }).withTypeProvider<ZodTypeProvider>();
 
@@ -18,6 +19,7 @@ app.setErrorHandler(errorHandler);
 
 await app.register(candidateRoutes, { prefix: "/api" });
 await app.register(applicationRoutes, { prefix: "/api" });
+await app.register(dashboardRoutes, { prefix: "/api" });
 
 const port = Number(process.env.PORT ?? 3001);
 
