@@ -1,10 +1,5 @@
 import { z } from "zod";
-
-const optionalTrimmedString = z
-  .string()
-  .trim()
-  .transform((v) => (v === "" ? undefined : v))
-  .optional();
+import { isoDateTime, optionalTrimmedString } from "./common";
 
 export const applicationStatusValues = [
   "applied",
@@ -49,12 +44,12 @@ export const ApplicationSchema = z.object({
   jobTitle: z.string(),
   company: z.string(),
   status: ApplicationStatusSchema,
-  appliedAt: z.string().datetime(),
+  appliedAt: isoDateTime,
   salaryExpectation: z.number().int().nullable(),
   currencyCode: CurrencyCodeSchema,
   source: z.string().nullable(),
   notes: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: isoDateTime,
+  updatedAt: isoDateTime,
 });
 export type Application = z.infer<typeof ApplicationSchema>;
