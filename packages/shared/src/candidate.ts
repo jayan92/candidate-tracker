@@ -18,7 +18,7 @@ export const CandidateCreateSchema = z.object({
   phone: optionalTrimmedString,
   location: optionalTrimmedString,
   linkedinUrl: optionalTrimmedString.pipe(
-    z.string().url("Must be a valid URL").optional(),
+    z.string().url("Must be a valid URL").nullish(),
   ),
   notes: optionalTrimmedString,
 });
