@@ -4,12 +4,16 @@ import {
   validatorCompiler,
   type ZodTypeProvider,
 } from "fastify-type-provider-zod";
+
+import { errorHandler } from "./plugins/error-handler";
 import { candidateRoutes } from "./routes/candidates";
 
 const app = Fastify({ logger: true }).withTypeProvider<ZodTypeProvider>();
 
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
+
+app.setErrorHandler(errorHandler);
 
 await app.register(candidateRoutes, { prefix: "/api" });
 

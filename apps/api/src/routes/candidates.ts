@@ -2,20 +2,18 @@ import { z } from "zod";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { Prisma } from "@prisma/client";
 import {
+  ApiErrorSchema,
   CandidateCreateSchema,
+  CandidateDetailSchema,
   CandidateListQuerySchema,
   CandidateListResponseSchema,
   CandidateSchema,
-  CandidateDetailSchema,
 } from "@candidate-tracker/shared";
 
 import { prisma } from "../lib/prisma";
+import { notFound } from "../lib/http-errors";
 
-/** :id path param — a UUID. Shared by GET/:id, PATCH, DELETE. */
 const IdParamsSchema = z.object({ id: z.string().uuid() });
-
-/** Standard error body. Phase 1d will unify this with the global handler. */
-const MessageSchema = z.object({ message: z.string() });
 
 export const candidateRoutes: FastifyPluginAsyncZod = async (app) => {
   app.post(
@@ -25,25 +23,12 @@ export const candidateRoutes: FastifyPluginAsyncZod = async (app) => {
         body: CandidateCreateSchema,
         response: {
           201: CandidateSchema,
-          409: z.object({ message: z.string() }),
+          409: ApiErrorSchema,
         },
       },
     },
     async (request, reply) => {
-      // TEMPORARY — deleted in Phase 1d when the global setErrorHandler
-      // takes over. Kept here so the problem it solves is visible.
-      const existing = await prisma.candidate.findUnique({
-        where: { email: request.body.email },
-      });
-
-      if (existing) {
-        return reply
-          .code(409)
-          .send({ message: "A candidate with this email already exists" });
-      }
-
       const candidate = await prisma.candidate.create({ data: request.body });
-
       return reply.code(201).send(candidate);
     },
   );
@@ -59,10 +44,8 @@ export const candidateRoutes: FastifyPluginAsyncZod = async (app) => {
     async (request) => {
       const { page, pageSize, search } = request.query;
 
-      // Built once, used by BOTH queries below so the count always
-      // matches the filter. Typed explicitly - no `any`.
       const where: Prisma.CandidateWhereInput = {
-        deletedAt: null, // soft-deleted candidates never appear
+        deletedAt: null,
         ...(search
           ? {
               OR: [
@@ -96,21 +79,17 @@ export const candidateRoutes: FastifyPluginAsyncZod = async (app) => {
         params: IdParamsSchema,
         response: {
           200: CandidateDetailSchema,
-          404: MessageSchema,
+          404: ApiErrorSchema,
         },
       },
     },
-    async (request, reply) => {
+    async (request) => {
       const candidate = await prisma.candidate.findFirst({
         where: { id: request.params.id, deletedAt: null },
         include: { applications: { orderBy: { appliedAt: "desc" } } },
       });
 
-      // Not an exception — findFirst returning null is a normal result,
-      // so this 404 stays here even after 1d's global error handler.
-      if (!candidate) {
-        return reply.code(404).send({ message: "Candidate not found" });
-      }
+      if (!candidate) throw notFound("Candidate not found");
 
       return candidate;
     },
