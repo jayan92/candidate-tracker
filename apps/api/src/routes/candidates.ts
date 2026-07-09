@@ -8,6 +8,7 @@ import {
   CandidateListQuerySchema,
   CandidateListResponseSchema,
   CandidateSchema,
+  CandidateUpdateSchema,
 } from "@candidate-tracker/shared";
 
 import { prisma } from "../lib/prisma";
@@ -92,6 +93,74 @@ export const candidateRoutes: FastifyPluginAsyncZod = async (app) => {
       if (!candidate) throw notFound("Candidate not found");
 
       return candidate;
+    },
+  );
+
+  /**
+   * PATCH /api/candidates/:id
+   *
+   * Every field optional (CandidateUpdateSchema is CandidateCreateSchema.partial()).
+   * Field omitted        -> undefined -> Prisma leaves the column untouched.
+   * Field sent as ""/null -> null      -> Prisma sets the column to NULL.
+   *
+   * `where` carries the soft-delete filter alongside the id, so one UPDATE
+   * statement covers "wrong id" and "already deleted" alike: no row matches,
+   * Prisma raises P2025, and the global handler returns 404. No read-then-write
+   * race, no not-found branch in this route.
+   *
+   * Changing email to one already taken raises P2002 -> 409, also handled globally.
+   */
+  app.patch(
+    "/candidates/:id",
+    {
+      schema: {
+        params: IdParamsSchema,
+        body: CandidateUpdateSchema,
+        response: {
+          200: CandidateSchema,
+          404: ApiErrorSchema,
+          409: ApiErrorSchema,
+        },
+      },
+    },
+    async (request) => {
+      return prisma.candidate.update({
+        where: { id: request.params.id, deletedAt: null },
+        data: request.body,
+      });
+    },
+  );
+
+  /**
+   * DELETE /api/candidates/:id
+   *
+   * Soft delete: stamps `deletedAt`, never removes the row. The candidate then
+   * disappears from every list, detail and search query, and their applications
+   * disappear from the Applications list too (see decisions.md).
+   *
+   * Deleting an already-deleted candidate matches no row -> P2025 -> 404, rather
+   * than silently succeeding twice.
+   */
+  app.delete(
+    "/candidates/:id",
+    {
+      schema: {
+        params: IdParamsSchema,
+        // 204 must be declared: the type provider narrows reply.code() to the
+        // codes listed here. z.null() types the body; Fastify emits none for 204.
+        response: {
+          204: z.null(),
+          404: ApiErrorSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      await prisma.candidate.update({
+        where: { id: request.params.id, deletedAt: null },
+        data: { deletedAt: new Date() },
+      });
+
+      return reply.code(204).send(null);
     },
   );
 };
