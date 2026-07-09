@@ -1,9 +1,12 @@
 import { z } from "zod";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
+import { Prisma } from "@prisma/client";
 import {
   ApiErrorSchema,
   ApplicationCreateSchema,
   ApplicationDetailSchema,
+  ApplicationListQuerySchema,
+  ApplicationListResponseSchema,
   ApplicationSchema,
   ApplicationUpdateSchema,
 } from "@candidate-tracker/shared";
@@ -50,6 +53,110 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
       });
 
       return reply.code(201).send(application);
+    },
+  );
+
+  /**
+   * GET /api/applications  —  the cross-entity search.
+   *
+   * One `search` term matches, in a SINGLE SQL statement:
+   *   - the application's own jobTitle, company, source, notes
+   *   - the parent candidate's name, email, location
+   *
+   * Prisma compiles the nested `candidate: { ... }` filters inside the OR array
+   * into LEFT JOINs against Candidate, producing one query of the shape:
+   *
+   *   SELECT ... FROM "Application"
+   *   LEFT JOIN "Candidate" AS j1 ON j1.id = "Application"."candidateId"
+   *   ... (one alias per nested filter) ...
+   *   WHERE (j1."deletedAt" IS NULL)
+   *     AND "status" = $1 AND "appliedAt" >= $2 AND "appliedAt" < $3
+   *     AND ("jobTitle" ILIKE $4 OR ... OR j2."name" ILIKE $8 OR j3."email" ILIKE $9 ...)
+   *   ORDER BY "appliedAt" DESC LIMIT $n OFFSET $n
+   *
+   * Nothing is fetched into Node and filtered there; every predicate is pushed
+   * into Postgres, and every value is a bound parameter (no string concatenation,
+   * so no SQL injection). Brief section 6.2.
+   *
+   * `candidate: { deletedAt: null }` sits at the TOP level, not inside the OR, so
+   * it is AND-ed around the whole search group — a search match can never surface
+   * an application belonging to a soft-deleted candidate.
+   */
+  app.get(
+    "/applications",
+    {
+      schema: {
+        querystring: ApplicationListQuerySchema,
+        response: { 200: ApplicationListResponseSchema },
+      },
+    },
+    async (request) => {
+      const { page, pageSize, search, status, appliedFrom, appliedTo } =
+        request.query;
+
+      // `appliedTo` comes from an <input type="date">, i.e. midnight of that day.
+      // A naive `lte` would exclude an application submitted at 09:00 that very
+      // day. Treat the filter as inclusive of the whole day instead.
+      const appliedBefore = appliedTo
+        ? new Date(appliedTo.getTime() + 24 * 60 * 60 * 1000)
+        : undefined;
+
+      // Built once, shared by findMany and count so `total` describes the same
+      // result set as `data`. Typed explicitly — no `any`.
+      const where: Prisma.ApplicationWhereInput = {
+        candidate: { deletedAt: null },
+        ...(status ? { status } : {}),
+        ...(appliedFrom || appliedBefore
+          ? {
+              appliedAt: {
+                ...(appliedFrom ? { gte: appliedFrom } : {}),
+                ...(appliedBefore ? { lt: appliedBefore } : {}),
+              },
+            }
+          : {}),
+        ...(search
+          ? {
+              OR: [
+                // the application's own columns
+                { jobTitle: { contains: search, mode: "insensitive" } },
+                { company: { contains: search, mode: "insensitive" } },
+                { source: { contains: search, mode: "insensitive" } },
+                { notes: { contains: search, mode: "insensitive" } },
+                // ...and the parent candidate's, via the relation (-> JOIN)
+                {
+                  candidate: {
+                    name: { contains: search, mode: "insensitive" },
+                  },
+                },
+                {
+                  candidate: {
+                    email: { contains: search, mode: "insensitive" },
+                  },
+                },
+                {
+                  candidate: {
+                    location: { contains: search, mode: "insensitive" },
+                  },
+                },
+              ],
+            }
+          : {}),
+      };
+
+      const [data, total] = await Promise.all([
+        prisma.application.findMany({
+          where,
+          include: {
+            candidate: { select: { id: true, name: true, email: true } },
+          },
+          orderBy: { appliedAt: "desc" },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+        }),
+        prisma.application.count({ where }),
+      ]);
+
+      return { data, total, page, pageSize };
     },
   );
 

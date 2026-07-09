@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { isoDateTime, optionalTrimmedString } from "./common";
+import {
+  isoDateTime,
+  optionalQueryDate,
+  optionalTrimmedString,
+  paginated,
+  PaginationQuerySchema,
+} from "./common";
 
 export const applicationStatusValues = [
   "applied",
@@ -70,3 +76,28 @@ export const ApplicationDetailSchema = ApplicationSchema.extend({
   candidate: ApplicationCandidateSchema,
 });
 export type ApplicationDetail = z.infer<typeof ApplicationDetailSchema>;
+
+/**
+ * GET /api/applications query params.
+ *
+ * Query strings are untyped, and the UI sends empty values for cleared filters:
+ * a status <select> on "All" sends `?status=`, a cleared date input sends
+ * `?appliedFrom=`. Both must mean "no filter", not "invalid". Hence the
+ * `z.literal("")` branches rather than bare `.optional()`.
+ */
+export const ApplicationListQuerySchema = PaginationQuerySchema.extend({
+  search: optionalTrimmedString,
+  status: z
+    .union([z.literal(""), ApplicationStatusSchema])
+    .optional()
+    .transform((v) => (v === "" ? undefined : v)),
+  appliedFrom: optionalQueryDate,
+  appliedTo: optionalQueryDate,
+});
+export type ApplicationListQuery = z.infer<typeof ApplicationListQuerySchema>;
+
+/** Rows carry their parent candidate so the table can link to them directly. */
+export const ApplicationListResponseSchema = paginated(ApplicationDetailSchema);
+export type ApplicationListResponse = z.infer<
+  typeof ApplicationListResponseSchema
+>;
