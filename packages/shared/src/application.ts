@@ -53,3 +53,20 @@ export const ApplicationSchema = z.object({
   updatedAt: isoDateTime,
 });
 export type Application = z.infer<typeof ApplicationSchema>;
+
+/**
+ * The parent candidate as embedded in an application response.
+ * Declared inline rather than imported from ./candidate so the import graph
+ * stays one-way (candidate.ts -> application.ts) with no cycle.
+ */
+export const ApplicationCandidateSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  email: z.string(),
+});
+
+/** GET /api/applications/:id — the application plus its parent candidate. */
+export const ApplicationDetailSchema = ApplicationSchema.extend({
+  candidate: ApplicationCandidateSchema,
+});
+export type ApplicationDetail = z.infer<typeof ApplicationDetailSchema>;
