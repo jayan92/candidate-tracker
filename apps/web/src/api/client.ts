@@ -57,11 +57,15 @@ const parseErrorBody = async (response: Response): Promise<ApiError> => {
 
 const send = async (path: string, init?: RequestInit): Promise<Response> => {
   let response: Response;
+  // Only declare a JSON body when there is one. Fastify rejects a request that
+  // announces `content-type: application/json` and then sends nothing, so a
+  // bodiless DELETE would 400 before it ever reached the route.
+  const headers = init?.body
+    ? { "content-type": "application/json", ...init.headers }
+    : init?.headers;
+
   try {
-    response = await fetch(`${API_URL}${path}`, {
-      ...init,
-      headers: { "content-type": "application/json", ...init?.headers },
-    });
+    response = await fetch(`${API_URL}${path}`, { ...init, headers });
   } catch {
     throw new ApiRequestError({
       statusCode: 0,
