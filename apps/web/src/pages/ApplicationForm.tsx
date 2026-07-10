@@ -31,6 +31,7 @@ import {
   useUpdateApplication,
 } from "../hooks/useApplications";
 import { useCandidate } from "../hooks/useCandidates";
+import { nullable } from "../lib/form";
 import { statusLabels } from "../lib/status";
 
 type FormValues = {
@@ -65,10 +66,6 @@ const valuesFrom = (application: ApplicationDetail): FormValues => ({
   source: application.source ?? "",
   notes: application.notes ?? "",
 });
-
-/** "" clears the column; a value is trimmed. Never `undefined` — that means "leave alone". */
-const nullable = (value: string): string | null =>
-  value.trim() === "" ? null : value.trim();
 
 type FormProps = {
   applicationId: string | null;

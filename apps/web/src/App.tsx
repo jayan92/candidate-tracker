@@ -3,6 +3,7 @@ import { NavLink, Route, Routes } from "react-router-dom";
 import { ApplicationForm } from "./pages/ApplicationForm";
 import { ApplicationsList } from "./pages/ApplicationsList";
 import { CandidateDetail } from "./pages/CandidateDetail";
+import { CandidateForm } from "./pages/CandidateForm";
 import { CandidatesList } from "./pages/CandidatesList";
 import { Dashboard } from "./pages/Dashboard";
 import { NotFound } from "./pages/NotFound";
@@ -38,7 +39,9 @@ export const App = () => (
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/candidates" element={<CandidatesList />} />
+        <Route path="/candidates/new" element={<CandidateForm />} />
         <Route path="/candidates/:id" element={<CandidateDetail />} />
+        <Route path="/candidates/:id/edit" element={<CandidateForm />} />
         <Route path="/applications" element={<ApplicationsList />} />
         <Route path="/applications/new" element={<ApplicationForm />} />
         <Route path="/applications/:id" element={<ApplicationForm />} />
