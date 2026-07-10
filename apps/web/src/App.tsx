@@ -1,5 +1,6 @@
 import { NavLink, Route, Routes } from "react-router-dom";
 
+import { CandidatesList } from "./pages/CandidatesList";
 import { Dashboard } from "./pages/Dashboard";
 import { NotFound } from "./pages/NotFound";
 
@@ -40,7 +41,7 @@ export const App = () => (
     <main className="mx-auto max-w-6xl px-6 py-8">
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/candidates" element={<Placeholder title="Candidates" />} />
+        <Route path="/candidates" element={<CandidatesList />} />
         <Route
           path="/applications"
           element={<Placeholder title="Applications" />}
