@@ -1,5 +1,6 @@
 import { NavLink, Route, Routes } from "react-router-dom";
 
+import { ApplicationForm } from "./pages/ApplicationForm";
 import { ApplicationsList } from "./pages/ApplicationsList";
 import { CandidateDetail } from "./pages/CandidateDetail";
 import { CandidatesList } from "./pages/CandidatesList";
@@ -39,6 +40,8 @@ export const App = () => (
         <Route path="/candidates" element={<CandidatesList />} />
         <Route path="/candidates/:id" element={<CandidateDetail />} />
         <Route path="/applications" element={<ApplicationsList />} />
+        <Route path="/applications/new" element={<ApplicationForm />} />
+        <Route path="/applications/:id" element={<ApplicationForm />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </main>
