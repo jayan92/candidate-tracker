@@ -1,25 +1,6 @@
-import Fastify from "fastify";
-import {
-  serializerCompiler,
-  validatorCompiler,
-  type ZodTypeProvider,
-} from "fastify-type-provider-zod";
+import { buildApp } from "./app";
 
-import { errorHandler } from "./plugins/error-handler";
-import { applicationRoutes } from "./routes/applications";
-import { candidateRoutes } from "./routes/candidates";
-import { dashboardRoutes } from "./routes/dashboard";
-
-const app = Fastify({ logger: true }).withTypeProvider<ZodTypeProvider>();
-
-app.setValidatorCompiler(validatorCompiler);
-app.setSerializerCompiler(serializerCompiler);
-
-app.setErrorHandler(errorHandler);
-
-await app.register(candidateRoutes, { prefix: "/api" });
-await app.register(applicationRoutes, { prefix: "/api" });
-await app.register(dashboardRoutes, { prefix: "/api" });
+const app = await buildApp({ logger: true });
 
 const port = Number(process.env.PORT ?? 3001);
 

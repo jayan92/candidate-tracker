@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "tsx watch --env-file=.env src/server.ts",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed"
   },
@@ -14,6 +16,8 @@
   },
   "dependencies": {
     "@candidate-tracker/shared": "*",
+    "@fastify/swagger": "^9.8.0",
+    "@fastify/swagger-ui": "^6.1.0",
     "@prisma/client": "^5.22.0",
     "fastify": "^5.10.0",
     "fastify-type-provider-zod": "^4.0.0",
@@ -23,6 +27,7 @@
     "@types/node": "^20.14.0",
     "prisma": "^5.22.0",
     "tsx": "^4.19.0",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "vitest": "^4.1.10"
   }
 }

@@ -21,6 +21,10 @@ export const candidateRoutes: FastifyPluginAsyncZod = async (app) => {
     "/candidates",
     {
       schema: {
+        tags: ["Candidates"],
+        summary: "Create a candidate",
+        description:
+          "Email must be unique; a collision returns 409. The email is trimmed and lower-cased before it is stored, so `  ADA@Example.COM  ` collides with `ada@example.com`.",
         body: CandidateCreateSchema,
         response: {
           201: CandidateSchema,
@@ -38,6 +42,10 @@ export const candidateRoutes: FastifyPluginAsyncZod = async (app) => {
     "/candidates",
     {
       schema: {
+        tags: ["Candidates"],
+        summary: "List candidates",
+        description:
+          "Paginated. `search` matches name, email, location or phone, case-insensitively. Soft-deleted candidates never appear. `total` describes the whole filtered set, not the current page.",
         querystring: CandidateListQuerySchema,
         response: { 200: CandidateListResponseSchema },
       },
@@ -77,6 +85,10 @@ export const candidateRoutes: FastifyPluginAsyncZod = async (app) => {
     "/candidates/:id",
     {
       schema: {
+        tags: ["Candidates"],
+        summary: "Get a candidate, including their applications",
+        description:
+          "A soft-deleted candidate returns 404 — as far as this API is concerned, they do not exist.",
         params: IdParamsSchema,
         response: {
           200: CandidateDetailSchema,
@@ -114,6 +126,10 @@ export const candidateRoutes: FastifyPluginAsyncZod = async (app) => {
     "/candidates/:id",
     {
       schema: {
+        tags: ["Candidates"],
+        summary: "Update a candidate",
+        description:
+          "Every field optional. **Omit a key** to leave that column untouched; **send `\"\"` or `null`** to clear it. Changing the email to one already taken returns 409.",
         params: IdParamsSchema,
         body: CandidateUpdateSchema,
         response: {
@@ -146,6 +162,10 @@ export const candidateRoutes: FastifyPluginAsyncZod = async (app) => {
     {
       schema: {
         params: IdParamsSchema,
+        tags: ["Candidates"],
+        summary: "Soft-delete a candidate",
+        description:
+          "Sets `deletedAt`; the row survives. The candidate and their applications then disappear from every list, search, detail and dashboard metric. Deleting an already-deleted candidate returns 404, not a silent success.",
         // 204 must be declared: the type provider narrows reply.code() to the
         // codes listed here. z.null() types the body; Fastify emits none for 204.
         response: {

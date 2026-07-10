@@ -31,7 +31,19 @@ export const dashboardRoutes: FastifyPluginAsyncZod = async (app) => {
    */
   app.get(
     "/dashboard",
-    { schema: { response: { 200: DashboardSchema } } },
+    {
+      schema: {
+        tags: ["Dashboard"],
+        summary: "All six dashboard metrics",
+        description:
+          "Every metric is aggregated in the database (Prisma `count` / `groupBy`), never derived from a full-list fetch. " +
+          "`applicationsByStatus` always contains all six statuses in canonical order, including those with a count of 0. " +
+          "`rejectionRate` is a percentage (0-100) to one decimal place. " +
+          "`hiredThisMonth` counts applications with status `hired` whose `appliedAt` falls in the current calendar month — there is no `hiredAt` column (see decisions.md). " +
+          "Soft-deleted candidates and their applications are excluded from every metric.",
+        response: { 200: DashboardSchema },
+      },
+    },
     async () => {
       const { start, next } = currentMonthRange(new Date());
 

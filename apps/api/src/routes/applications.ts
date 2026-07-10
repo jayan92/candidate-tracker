@@ -35,6 +35,10 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
     "/applications",
     {
       schema: {
+        tags: ["Applications"],
+        summary: "Create an application",
+        description:
+          "`candidateId` must reference a candidate that exists and is not soft-deleted; otherwise 404. `status` defaults to `applied` and `currencyCode` to `USD`. `appliedAt` accepts a date-only string (`2026-07-01`) or a full ISO timestamp.",
         body: ApplicationCreateSchema,
         response: {
           201: ApplicationSchema,
@@ -86,6 +90,13 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
     "/applications",
     {
       schema: {
+        tags: ["Applications"],
+        summary: "List applications (cross-entity search)",
+        description:
+          "One `search` term matches the application's own `jobTitle`, `company`, `source` and `notes` **and** the parent candidate's `name`, `email` and `location` — in a single SQL statement with JOINs, case-insensitively. " +
+          "Filter by `status` and by an `appliedFrom`/`appliedTo` date range; `appliedTo` is inclusive of the whole day. " +
+          "Empty values (`?status=`, `?appliedFrom=`) mean *no filter*, not *invalid*. " +
+          "Applications belonging to a soft-deleted candidate never appear. Each row embeds its candidate.",
         querystring: ApplicationListQuerySchema,
         response: { 200: ApplicationListResponseSchema },
       },
@@ -168,6 +179,10 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
     "/applications/:id",
     {
       schema: {
+        tags: ["Applications"],
+        summary: "Get an application, including its parent candidate",
+        description:
+          "Embeds the candidate's `id`, `name` and `email` so the detail page can link back without a second request.",
         params: IdParamsSchema,
         response: {
           200: ApplicationDetailSchema,
@@ -203,6 +218,10 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
     "/applications/:id",
     {
       schema: {
+        tags: ["Applications"],
+        summary: "Update an application",
+        description:
+          "Every field optional, including `candidateId` — reassigning to a nonexistent or soft-deleted candidate returns 404. **Omit a key** to leave that column untouched; **send `\"\"` or `null`** to clear it.",
         params: IdParamsSchema,
         body: ApplicationUpdateSchema,
         response: {
@@ -236,6 +255,10 @@ export const applicationRoutes: FastifyPluginAsyncZod = async (app) => {
     "/applications/:id",
     {
       schema: {
+        tags: ["Applications"],
+        summary: "Delete an application (hard delete)",
+        description:
+          "The row is removed. Unlike Candidates, Applications are not soft-deleted — the brief permits either.",
         params: IdParamsSchema,
         response: {
           204: z.null(),
