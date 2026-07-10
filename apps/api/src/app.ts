@@ -1,3 +1,4 @@
+import fastifyCors from "@fastify/cors";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import Fastify from "fastify";
@@ -38,6 +39,14 @@ export const buildApp = async ({
 
   // Single global error handler — brief section 6.2. No try/catch in routes.
   app.setErrorHandler(errorHandler);
+
+  // apps/web runs on a different origin (Vite, :5173) to this API (:3001), so
+  // the browser blocks its fetches without an explicit allow. Scoped to the one
+  // known origin rather than `*`: this is a staff-only tool, and a wildcard
+  // would let any page on the internet call the API from a visitor's browser.
+  await app.register(fastifyCors, {
+    origin: process.env.WEB_ORIGIN ?? "http://localhost:5173",
+  });
 
   if (docs) {
     // `jsonSchemaTransform` converts each route's Zod schemas into OpenAPI. The
