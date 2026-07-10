@@ -1,6 +1,7 @@
 import { NavLink, Route, Routes } from "react-router-dom";
 
-import { applicationStatusValues } from "@candidate-tracker/shared";
+import { Dashboard } from "./pages/Dashboard";
+import { NotFound } from "./pages/NotFound";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -13,10 +14,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 const Placeholder = ({ title }: { title: string }) => (
   <div className="rounded-lg border border-dashed border-slate-300 p-8">
     <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
-    <p className="mt-2 text-sm text-slate-600">
-      Not built yet. Statuses imported from the shared package, proving the
-      workspace wiring: {applicationStatusValues.join(", ")}.
-    </p>
+    <p className="mt-2 text-sm text-slate-600">Not built yet.</p>
   </div>
 );
 
@@ -41,15 +39,13 @@ export const App = () => (
 
     <main className="mx-auto max-w-6xl px-6 py-8">
       <Routes>
-        <Route path="/" element={<Placeholder title="Dashboard" />} />
-        <Route
-          path="/candidates"
-          element={<Placeholder title="Candidates" />}
-        />
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/candidates" element={<Placeholder title="Candidates" />} />
         <Route
           path="/applications"
           element={<Placeholder title="Applications" />}
         />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </main>
   </div>
