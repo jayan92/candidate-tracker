@@ -1,5 +1,6 @@
 import { NavLink, Route, Routes } from "react-router-dom";
 
+import { ApplicationsList } from "./pages/ApplicationsList";
 import { CandidateDetail } from "./pages/CandidateDetail";
 import { CandidatesList } from "./pages/CandidatesList";
 import { Dashboard } from "./pages/Dashboard";
@@ -12,13 +13,6 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
       ? "bg-slate-900 text-white"
       : "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
   ].join(" ");
-
-const Placeholder = ({ title }: { title: string }) => (
-  <div className="rounded-lg border border-dashed border-slate-300 p-8">
-    <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
-    <p className="mt-2 text-sm text-slate-600">Not built yet.</p>
-  </div>
-);
 
 export const App = () => (
   <div className="min-h-screen bg-slate-50">
@@ -44,10 +38,7 @@ export const App = () => (
         <Route path="/" element={<Dashboard />} />
         <Route path="/candidates" element={<CandidatesList />} />
         <Route path="/candidates/:id" element={<CandidateDetail />} />
-        <Route
-          path="/applications"
-          element={<Placeholder title="Applications" />}
-        />
+        <Route path="/applications" element={<ApplicationsList />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </main>

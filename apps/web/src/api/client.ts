@@ -70,7 +70,7 @@ const send = async (path: string, init?: RequestInit): Promise<Response> => {
     throw new ApiRequestError({
       statusCode: 0,
       error: "Network Error",
-      message: "Could not reach the API. Is it running on port 3001?",
+      message: `Could not reach the API at ${API_URL}. Is it running?`,
     });
   }
 
