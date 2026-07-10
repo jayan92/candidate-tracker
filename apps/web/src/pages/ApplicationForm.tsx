@@ -130,13 +130,12 @@ const Form = ({ applicationId, initialValues, initialCandidate }: FormProps) => 
         : { salaryExpectation: Number(values.salaryExpectation) }),
     };
 
-    if (isEdit) {
-      updateApplication.mutate(payload);
-    } else {
-      createApplication.mutate(payload, {
-        onSuccess: (created) => navigate(`/applications/${created.id}`),
-      });
-    }
+    // The candidate the application now belongs to — on edit the picker may have
+    // reassigned it, so this is the selected one, not the one we arrived with.
+    const onSuccess = () => navigate(`/candidates/${candidate.id}`);
+
+    if (isEdit) updateApplication.mutate(payload, { onSuccess });
+    else createApplication.mutate(payload, { onSuccess });
   };
 
   const inputClass = (field: keyof FormValues | "candidateId") =>
@@ -172,12 +171,6 @@ const Form = ({ applicationId, initialValues, initialCandidate }: FormProps) => 
           className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
           {generalError}
-        </p>
-      )}
-
-      {isEdit && mutation.isSuccess && (
-        <p className="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-          Changes saved.
         </p>
       )}
 

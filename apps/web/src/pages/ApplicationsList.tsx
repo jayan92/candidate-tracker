@@ -124,23 +124,27 @@ export const ApplicationsList = () => {
         </Link>
       </div>
 
-      <div className="space-y-4">
-        <SearchInput
-          value={searchInput}
-          onChange={setSearchInput}
-          label="Search applications"
-          placeholder="Search job title, company, source, notes, or candidate"
-        />
-        <FilterBar
-          status={status}
-          appliedFrom={appliedFrom}
-          appliedTo={appliedTo}
-          onStatusChange={(value) => setFilter("status", value)}
-          onAppliedFromChange={(value) => setFilter("appliedFrom", value)}
-          onAppliedToChange={(value) => setFilter("appliedTo", value)}
-          onClear={clearFilters}
-          hasActiveFilters={hasActiveFilters}
-        />
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="lg:flex-1">
+          <SearchInput
+            value={searchInput}
+            onChange={setSearchInput}
+            label="Search applications"
+            placeholder="Search job title, company, source, notes, or candidate"
+          />
+        </div>
+        <div className="lg:shrink-0">
+          <FilterBar
+            status={status}
+            appliedFrom={appliedFrom}
+            appliedTo={appliedTo}
+            onStatusChange={(value) => setFilter("status", value)}
+            onAppliedFromChange={(value) => setFilter("appliedFrom", value)}
+            onAppliedToChange={(value) => setFilter("appliedTo", value)}
+            onClear={clearFilters}
+            hasActiveFilters={hasActiveFilters}
+          />
+        </div>
       </div>
 
       {isError ? (
